@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import chromium from 'chrome-aws-lambda';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -53,21 +53,12 @@ export const handler = async (event) => {
       throw new Error('Failed to extract content');
     }
 
-    // Initialize chromium
-    await chromium.init();
-    
-    const executablePath = await chromium.executablePath();
-
-    // Launch browser with the executable path
+    // Launch browser
     browser = await puppeteer.launch({
       args: chromium.args,
-      executablePath,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
       headless: chromium.headless,
-      defaultViewport: {
-        width: 1920,
-        height: 1080,
-        deviceScaleFactor: 1,
-      }
     });
 
     const page = await browser.newPage();
