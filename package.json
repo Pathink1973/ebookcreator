@@ -17,6 +17,7 @@
     "node-fetch": "^3.3.2",
     "path": "^0.12.7",
     "puppeteer-core": "^10.1.0",
+    "@sparticuz/chromium": "^109.0.5",
     "lambdafs": "^2.1.1"
   }
 }
