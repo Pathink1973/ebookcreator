@@ -3,7 +3,7 @@ import puppeteer from 'puppeteer-core';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
-// Template function (moved from templates.js)
+// Template function
 const getTemplate = ({ title, author, content, coverImage }) => `
 <!DOCTYPE html>
 <html>
@@ -104,14 +104,20 @@ export const handler = async (event) => {
 
     // Launch browser with appropriate configurations
     browser = await puppeteer.launch({
-      args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath('win64'),
+      args: chromium.args,
+      executablePath: process.env.CHROME_EXECUTABLE_PATH || await chromium.executablePath,
       headless: true,
-      ignoreHTTPSErrors: true
+      defaultViewport: {
+        width: 1280,
+        height: 720,
+        deviceScaleFactor: 1,
+      }
     });
     
     const page = await browser.newPage();
+    
+    // Set a longer timeout for navigation
+    page.setDefaultTimeout(30000);
     
     // Generate HTML content
     const htmlContent = getTemplate({
@@ -123,7 +129,7 @@ export const handler = async (event) => {
     
     // Set content with extended timeout
     await page.setContent(htmlContent, { 
-      waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
+      waitUntil: ['networkidle0', 'domcontentloaded'],
       timeout: 30000 
     });
     
@@ -157,7 +163,11 @@ export const handler = async (event) => {
   } finally {
     // Make sure to close the browser
     if (browser !== null) {
-      await browser.close();
+      try {
+        await browser.close();
+      } catch (error) {
+        console.error('Error closing browser:', error);
+      }
     }
   }
 };
