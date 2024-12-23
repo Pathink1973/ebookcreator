@@ -1,4 +1,5 @@
-import chromium from 'chrome-aws-lambda';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -85,6 +86,8 @@ export const handler = async (event) => {
     };
   }
 
+  let browser = null;
+  
   try {
     const { tema, author, wikiUrl, imageUrl, options } = JSON.parse(event.body);
     
@@ -99,11 +102,15 @@ export const handler = async (event) => {
       throw new Error('Failed to extract content from Wikipedia');
     }
 
-    // Generate PDF using Puppeteer with chrome-aws-lambda
-    const browser = await chromium.puppeteer.launch({
+    // Configure chromium
+    await chromium.init();
+    const executablePath = await chromium.executablePath;
+
+    // Launch browser with appropriate configurations
+    browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+      executablePath: executablePath,
       headless: chromium.headless,
     });
     
@@ -117,20 +124,20 @@ export const handler = async (event) => {
       coverImage: imageUrl
     });
     
+    // Set content with extended timeout
     await page.setContent(htmlContent, { 
-      waitUntil: ['networkidle0', 'load', 'domcontentloaded']
+      waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
+      timeout: 30000 
     });
     
-    // Generate PDF
+    // Generate PDF with specific settings
     const pdf = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' }
+      margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' },
+      timeout: 30000
     });
     
-    await browser.close();
-    
-    // Return PDF as base64
     return {
       statusCode: 200,
       headers: {
@@ -150,5 +157,10 @@ export const handler = async (event) => {
         details: error.toString()
       })
     };
+  } finally {
+    // Make sure to close the browser
+    if (browser !== null) {
+      await browser.close();
+    }
   }
 };
