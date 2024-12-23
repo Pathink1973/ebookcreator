@@ -1,4 +1,4 @@
-import chromium from '@sparticuz/chromium';
+import chromium from 'chrome-aws-lambda';
 import puppeteer from 'puppeteer-core';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -26,14 +26,6 @@ const getTemplate = ({ title, author, content, coverImage }) => `
             color: #2c3e50;
         }
         
-        h1 {
-            text-align: center;
-            font-size: 2.5em;
-            margin-bottom: 2rem;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 1rem;
-        }
-        
         img {
             max-width: 100%;
             height: auto;
@@ -49,34 +41,17 @@ const getTemplate = ({ title, author, content, coverImage }) => `
         .author {
             text-align: center;
             font-style: italic;
-            margin-bottom: 3rem;
-            color: #7f8c8d;
-        }
-        
-        .content {
-            text-align: justify;
-        }
-        
-        a {
-            color: #3498db;
-            text-decoration: none;
-        }
-        
-        a:hover {
-            text-decoration: underline;
+            margin-bottom: 2rem;
         }
     </style>
 </head>
 <body>
     <h1>${title}</h1>
-    ${coverImage ? `<img src="${coverImage}" alt="Cover Image" class="cover-image">` : ''}
     <div class="author">By ${author}</div>
-    <div class="content">
-        ${content}
-    </div>
+    ${coverImage ? `<img src="${coverImage}" alt="Cover" class="cover-image">` : ''}
+    ${content}
 </body>
-</html>
-`;
+</html>`;
 
 export const handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -102,30 +77,15 @@ export const handler = async (event) => {
       throw new Error('Failed to extract content from Wikipedia');
     }
 
-    // Get the executable path
-    let executablePath;
-    try {
-      executablePath = await chromium.executablePath;
-      if (typeof executablePath === 'function') {
-        executablePath = await executablePath();
-      }
-    } catch (error) {
-      console.error('Error getting executable path:', error);
-      executablePath = await chromium.executablePath('/opt/buildhome/.cache/puppeteer/chrome/linux-119.0.0/chrome-linux64/chrome');
-    }
-
-    // Launch browser with appropriate configurations
+    // Launch browser with AWS Lambda Chrome
     browser = await puppeteer.launch({
       args: chromium.args,
-      executablePath: executablePath,
-      headless: chromium.headless,
-      defaultViewport: chromium.defaultViewport
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: true
     });
-    
+
     const page = await browser.newPage();
-    
-    // Set a longer timeout for navigation
-    page.setDefaultTimeout(30000);
     
     // Generate HTML content
     const htmlContent = getTemplate({
@@ -137,7 +97,7 @@ export const handler = async (event) => {
     
     // Set content with extended timeout
     await page.setContent(htmlContent, { 
-      waitUntil: ['networkidle0', 'domcontentloaded'],
+      waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
       timeout: 30000 
     });
     
@@ -165,18 +125,12 @@ export const handler = async (event) => {
       statusCode: 500,
       body: JSON.stringify({ 
         error: error.message,
-        details: error.toString(),
-        stack: error.stack
+        details: error.toString()
       })
     };
   } finally {
-    // Make sure to close the browser
     if (browser !== null) {
-      try {
-        await browser.close();
-      } catch (error) {
-        console.error('Error closing browser:', error);
-      }
+      await browser.close();
     }
   }
 };
