@@ -1,5 +1,4 @@
-const chromium = require('chrome-aws-lambda');
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 
 exports.handler = async function (event, context) {
     let browser = null;
@@ -13,20 +12,34 @@ exports.handler = async function (event, context) {
 
         const { content, title, author, template, includeToc, includeImages, includeReferences, imageUrl } = JSON.parse(event.body);
 
-        // Configure chrome-aws-lambda
+        // Launch puppeteer with minimal options
         browser = await puppeteer.launch({
-            args: chromium.args,
-            defaultViewport: chromium.defaultViewport,
-            executablePath: await chromium.executablePath,
             headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-extensions'
+            ]
         });
 
         const page = await browser.newPage();
+        
+        // Set a reasonable viewport
+        await page.setViewport({
+            width: 1200,
+            height: 800
+        });
         
         await page.setContent(`
             <!DOCTYPE html>
             <html>
                 <head>
+                    <meta charset="UTF-8">
                     <title>${title}</title>
                     <style>
                         body { 
@@ -38,6 +51,7 @@ exports.handler = async function (event, context) {
                         .cover {
                             text-align: center;
                             margin-bottom: 40px;
+                            page-break-after: always;
                         }
                         .cover img {
                             max-width: 80%;
@@ -73,6 +87,7 @@ exports.handler = async function (event, context) {
                             padding: 20px;
                             background: #f5f5f5;
                             border-radius: 5px;
+                            page-break-after: always;
                         }
                         .toc h2 {
                             margin-top: 0;
@@ -89,6 +104,11 @@ exports.handler = async function (event, context) {
                             body { font-family: 'Times New Roman', serif; }
                             .content { font-size: 12pt; }
                         ` : ''}
+                        @media print {
+                            .page-break {
+                                page-break-before: always;
+                            }
+                        }
                     </style>
                 </head>
                 <body>
@@ -119,17 +139,22 @@ exports.handler = async function (event, context) {
             </html>
         `);
 
+        // Wait for any images to load
+        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+        await page.waitForTimeout(1000);
+
         const pdf = await page.pdf({
             format: 'A4',
             printBackground: true,
-            margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
+            margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' },
+            preferCSSPageSize: true
         });
 
         return {
             statusCode: 200,
             headers: {
                 'Content-Type': 'application/pdf',
-                'Content-Disposition': `inline; filename="${encodeURIComponent(title)}.pdf"`,
+                'Content-Disposition': `attachment; filename="${encodeURIComponent(title)}.pdf"`,
             },
             body: pdf.toString('base64'),
             isBase64Encoded: true
@@ -139,7 +164,11 @@ exports.handler = async function (event, context) {
         console.error('Error generating PDF:', error);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to generate PDF', details: error.message })
+            body: JSON.stringify({ 
+                error: 'Failed to generate PDF', 
+                details: error.message,
+                stack: error.stack 
+            })
         };
     } finally {
         if (browser !== null) {

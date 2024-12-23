@@ -4,9 +4,12 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["chrome-aws-lambda", "puppeteer-core"]
+  included_files = ["node_modules/puppeteer/**/*"]
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[build.environment]
+  NODE_VERSION = "18.x"
