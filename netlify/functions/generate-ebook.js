@@ -102,16 +102,24 @@ export const handler = async (event) => {
       throw new Error('Failed to extract content from Wikipedia');
     }
 
+    // Get the executable path
+    let executablePath;
+    try {
+      executablePath = await chromium.executablePath;
+      if (typeof executablePath === 'function') {
+        executablePath = await executablePath();
+      }
+    } catch (error) {
+      console.error('Error getting executable path:', error);
+      executablePath = await chromium.executablePath('/opt/buildhome/.cache/puppeteer/chrome/linux-119.0.0/chrome-linux64/chrome');
+    }
+
     // Launch browser with appropriate configurations
     browser = await puppeteer.launch({
       args: chromium.args,
-      executablePath: process.env.CHROME_EXECUTABLE_PATH || await chromium.executablePath,
-      headless: true,
-      defaultViewport: {
-        width: 1280,
-        height: 720,
-        deviceScaleFactor: 1,
-      }
+      executablePath: executablePath,
+      headless: chromium.headless,
+      defaultViewport: chromium.defaultViewport
     });
     
     const page = await browser.newPage();
@@ -157,7 +165,8 @@ export const handler = async (event) => {
       statusCode: 500,
       body: JSON.stringify({ 
         error: error.message,
-        details: error.toString()
+        details: error.toString(),
+        stack: error.stack
       })
     };
   } finally {
