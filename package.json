@@ -11,12 +11,12 @@
     "@netlify/functions": "^2.0.0",
     "axios": "^1.7.7",
     "cheerio": "^1.0.0",
-    "chrome-aws-lambda": "^10.1.0",
     "express": "^4.17.1",
     "html-to-text": "^9.0.5",
     "mime-types": "^2.1.35",
     "node-fetch": "^3.3.2",
     "path": "^0.12.7",
-    "puppeteer-core": "^10.1.0"
+    "puppeteer-core": "^10.1.0",
+    "lambdafs": "^2.1.1"
   }
 }

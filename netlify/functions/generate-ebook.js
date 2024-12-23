@@ -1,7 +1,7 @@
-import chromium from 'chrome-aws-lambda';
 import puppeteer from 'puppeteer-core';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { getChromium } from './chromium.js';
 
 // Template function
 const getTemplate = ({ title, author, content, coverImage }) => `
@@ -77,10 +77,17 @@ export const handler = async (event) => {
       throw new Error('Failed to extract content from Wikipedia');
     }
 
-    // Launch browser with AWS Lambda Chrome
+    // Get Chrome binary
+    const chromium = await getChromium();
+    
+    // Launch browser
     browser = await puppeteer.launch({
       args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
+      defaultViewport: {
+        width: 1920,
+        height: 1080,
+        deviceScaleFactor: 1,
+      },
       executablePath: await chromium.executablePath,
       headless: true
     });
