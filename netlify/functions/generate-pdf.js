@@ -12,21 +12,24 @@ exports.handler = async function (event, context) {
 
         const { content, title, author, template, includeToc, includeImages, includeReferences, imageUrl } = JSON.parse(event.body);
 
-        // Launch browser with chrome-aws-lambda
+        // Launch browser with minimal options
         browser = await chromium.puppeteer.launch({
-            args: chromium.args,
-            defaultViewport: chromium.defaultViewport,
+            args: [
+                ...chromium.args,
+                '--disable-dev-shm-usage',
+                '--no-sandbox',
+                '--disable-setuid-sandbox'
+            ],
+            defaultViewport: {
+                width: 1200,
+                height: 800
+            },
             executablePath: await chromium.executablePath,
-            headless: chromium.headless,
+            headless: true,
+            ignoreHTTPSErrors: true
         });
 
         const page = await browser.newPage();
-        
-        // Set viewport
-        await page.setViewport({
-            width: 1200,
-            height: 800
-        });
 
         // Set content with timeout
         await Promise.race([
@@ -132,7 +135,7 @@ exports.handler = async function (event, context) {
                         ` : ''}
                     </body>
                 </html>
-            `),
+            `, { waitUntil: 'networkidle0', timeout: 25000 }),
             new Promise((_, reject) => 
                 setTimeout(() => reject(new Error('Content loading timeout')), 25000)
             )
