@@ -24,6 +24,9 @@ if (!fs.existsSync(downloadsDir)) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Static files - Move this before the API routes
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Function to fix Wikipedia image URLs
 const fixWikipediaImageUrls = ($) => {
     $('img').each((i, img) => {
@@ -121,18 +124,13 @@ app.post('/generate-ebook', async (req, res) => {
             imageUrl
         }, {
             ...options,
-            template: options.template || 'modern' // Ensure template is passed
+            template: options.template || 'modern'
         });
 
-        const fileName = `${tema.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
-        const filePath = path.join(__dirname, '../public/downloads', fileName);
-        
-        fs.writeFileSync(filePath, pdfBuffer);
-        
-        res.json({ 
-            downloadLink: `/downloads/${fileName}`,
-            message: 'E-book generated successfully!'
-        });
+        // Send PDF directly as binary
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${tema.replace(/\s+/g, '_')}.pdf"`);
+        res.send(pdfBuffer);
     } catch (error) {
         console.error('Error generating ebook:', error);
         res.status(500).json({ error: error.message });
@@ -153,9 +151,6 @@ app.post('/api/preview', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
-// Static files
-app.use(express.static(path.join(__dirname, '../public')));
 
 // Helper functions below
 const fetchWikipediaContent = async (wikiUrl, options) => {
@@ -268,7 +263,10 @@ const generatePDF = async (content, options) => {
             }
         });
 
-        return pdf;
+        // Ensure we have a proper Buffer
+        const pdfBuffer = Buffer.from(pdf);
+        console.log('PDF Generation: Buffer length:', pdfBuffer.length);
+        return pdfBuffer;
     } finally {
         await browser.close();
     }

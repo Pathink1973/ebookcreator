@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch('/.netlify/functions/generate-ebook', {
+            const response = await fetch('/generate-ebook', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,25 +41,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(formData)
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
-                throw new Error(data.error || data.details || 'Failed to generate PDF');
+                const errorData = await response.json();
+                throw new Error(errorData.error || errorData.details || 'Failed to generate PDF');
             }
 
-            if (!data.pdf) {
-                throw new Error('No PDF data received from server');
-            }
-            
-            // Convert base64 to PDF and trigger download
-            const pdfContent = atob(data.pdf);
-            const pdfBlob = new Blob([new Uint8Array([...pdfContent].map(char => char.charCodeAt(0)))], 
-                                   { type: 'application/pdf' });
-            
+            // Get the filename from the Content-Disposition header
+            const contentDisposition = response.headers.get('Content-Disposition');
+            const filenameMatch = contentDisposition && contentDisposition.match(/filename="(.+)"/);
+            const filename = filenameMatch ? filenameMatch[1] : `${formData.tema.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+
+            // Get the PDF blob directly
+            const pdfBlob = await response.blob();
             const downloadUrl = URL.createObjectURL(pdfBlob);
+            
             const a = document.createElement('a');
             a.href = downloadUrl;
-            a.download = `${formData.tema.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

@@ -5,9 +5,11 @@
   "main": "netlify/functions/generate-ebook.js",
   "scripts": {
     "start": "node server/server.js",
-    "build": "npm install"
+    "build": "npm install --legacy-peer-deps"
   },
   "dependencies": {
+    "@netlify/functions": "^2.0.0",
+    "@sparticuz/chromium": "^109.0.5",
     "axios": "^1.7.7",
     "cheerio": "^1.0.0",
     "express": "^4.17.1",
@@ -15,7 +17,7 @@
     "mime-types": "^2.1.35",
     "node-fetch": "^3.3.2",
     "path": "^0.12.7",
-    "@netlify/functions": "^2.0.0",
-    "html-pdf-node": "^1.0.8"
+    "puppeteer": "^23.11.1",
+    "puppeteer-core": "^10.1.0"
   }
 }

@@ -1,4 +1,5 @@
-import html_to_pdf from 'html-pdf-node';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -9,13 +10,20 @@ const getTemplate = ({ title, author, content, coverImage }) => `
 <head>
     <meta charset="UTF-8">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300;1,400&family=Open+Sans:wght@400;600&display=swap');
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Merriweather', serif;
             line-height: 1.6;
             color: #333;
             max-width: 800px;
             margin: 0 auto;
             padding: 2rem;
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Open Sans', sans-serif;
+            color: #2c3e50;
         }
         
         h1 {
@@ -42,11 +50,20 @@ const getTemplate = ({ title, author, content, coverImage }) => `
             text-align: center;
             font-style: italic;
             margin-bottom: 3rem;
-            color: #666;
+            color: #7f8c8d;
         }
         
         .content {
             text-align: justify;
+        }
+        
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -69,8 +86,10 @@ export const handler = async (event) => {
     };
   }
 
+  let browser = null;
+  
   try {
-    const { tema, author, wikiUrl, imageUrl } = JSON.parse(event.body);
+    const { tema, author, wikiUrl, imageUrl, options } = JSON.parse(event.body);
     
     // Fetch Wikipedia content
     const response = await axios.get(wikiUrl);
@@ -83,6 +102,31 @@ export const handler = async (event) => {
       throw new Error('Failed to extract content from Wikipedia');
     }
 
+    // Get the executable path
+    let executablePath;
+    try {
+      executablePath = await chromium.executablePath;
+      if (typeof executablePath === 'function') {
+        executablePath = await executablePath();
+      }
+    } catch (error) {
+      console.error('Error getting executable path:', error);
+      executablePath = await chromium.executablePath('/opt/buildhome/.cache/puppeteer/chrome/linux-119.0.0/chrome-linux64/chrome');
+    }
+
+    // Launch browser with appropriate configurations
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: executablePath,
+      headless: chromium.headless,
+      defaultViewport: chromium.defaultViewport
+    });
+    
+    const page = await browser.newPage();
+    
+    // Set a longer timeout for navigation
+    page.setDefaultTimeout(30000);
+    
     // Generate HTML content
     const htmlContent = getTemplate({
       title: tema,
@@ -90,21 +134,20 @@ export const handler = async (event) => {
       content: content,
       coverImage: imageUrl
     });
-
-    // Options for PDF generation
-    const options = {
+    
+    // Set content with extended timeout
+    await page.setContent(htmlContent, { 
+      waitUntil: ['networkidle0', 'domcontentloaded'],
+      timeout: 30000 
+    });
+    
+    // Generate PDF with specific settings
+    const pdf = await page.pdf({
       format: 'A4',
-      margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' },
       printBackground: true,
-      preferCSSPageSize: true,
-      timeout: 30000,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      waitForNetworkIdle: true
-    };
-
-    // Generate PDF
-    const file = { content: htmlContent };
-    const pdfBuffer = await html_to_pdf.generatePdf(file, options);
+      margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' },
+      timeout: 30000
+    });
     
     return {
       statusCode: 200,
@@ -112,7 +155,7 @@ export const handler = async (event) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        pdf: pdfBuffer.toString('base64')
+        pdf: pdf.toString('base64')
       })
     };
     
@@ -126,5 +169,14 @@ export const handler = async (event) => {
         stack: error.stack
       })
     };
+  } finally {
+    // Make sure to close the browser
+    if (browser !== null) {
+      try {
+        await browser.close();
+      } catch (error) {
+        console.error('Error closing browser:', error);
+      }
+    }
   }
 };
