@@ -4,6 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateBtn = document.getElementById('generateBtn');
     const loadingSpinner = document.getElementById('loadingSpinner');
     const errorMessage = document.getElementById('errorMessage');
+    const tema = document.getElementById('tema');
+    const author = document.getElementById('author');
+    const imageUrl = document.getElementById('imageUrl');
+    const template = document.getElementById('template');
+    const includeToc = document.getElementById('includeToc');
+    const includeImages = document.getElementById('includeImages');
+    const includeReferences = document.getElementById('includeReferences');
 
     async function fetchWikipediaContent(url) {
         console.log('Fetching content from:', url);
@@ -34,12 +41,25 @@ document.addEventListener('DOMContentLoaded', () => {
     async function generatePDF(content, title) {
         console.log('Generating PDF for:', title);
         try {
+            const pdfData = {
+                content,
+                title,
+                author: author.value,
+                template: template.value,
+                includeToc: includeToc.checked,
+                includeImages: includeImages.checked,
+                includeReferences: includeReferences.checked,
+                imageUrl: imageUrl.value
+            };
+
+            console.log('PDF data:', pdfData);
+
             const response = await fetch('/.netlify/functions/generate-pdf', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ content, title })
+                body: JSON.stringify(pdfData)
             });
 
             console.log('PDF generation response status:', response.status);
@@ -97,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const { title, content } = await fetchWikipediaContent(url);
                 console.log('Content fetched, title:', title);
-                await generatePDF(content, title);
+                await generatePDF(content, title || tema.value);
                 console.log('PDF generation complete');
 
             } catch (error) {
