@@ -5,7 +5,7 @@
   "main": "netlify/functions/generate-ebook.js",
   "scripts": {
     "start": "node server/server.js",
-    "build": "npm install --legacy-peer-deps"
+    "build": "npm install"
   },
   "dependencies": {
     "@netlify/functions": "^2.0.0",
@@ -16,8 +16,8 @@
     "mime-types": "^2.1.35",
     "node-fetch": "^3.3.2",
     "path": "^0.12.7",
-    "puppeteer-core": "^10.1.0",
-    "@sparticuz/chromium": "^109.0.5",
+    "puppeteer-core": "^19.7.0",
+    "@sparticuz/chromium": "^119.0.2",
     "lambdafs": "^2.1.1"
   }
 }
