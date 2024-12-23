@@ -33,7 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch('/generate-ebook', {
+            // Determine if we're running locally or on Netlify
+            const isNetlify = window.location.hostname !== 'localhost';
+            const endpoint = isNetlify ? '/.netlify/functions/generate-ebook' : '/generate-ebook';
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -46,15 +50,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(errorData.error || errorData.details || 'Failed to generate PDF');
             }
 
-            // Get the filename from the Content-Disposition header
-            const contentDisposition = response.headers.get('Content-Disposition');
-            const filenameMatch = contentDisposition && contentDisposition.match(/filename="(.+)"/);
-            const filename = filenameMatch ? filenameMatch[1] : `${formData.tema.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+            let pdfBlob;
+            if (isNetlify) {
+                // Handle Netlify Function response (base64 encoded PDF)
+                const data = await response.json();
+                if (!data.pdf) {
+                    throw new Error('No PDF data received from server');
+                }
+                
+                const binaryString = atob(data.pdf);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                pdfBlob = new Blob([bytes], { type: 'application/pdf' });
+            } else {
+                // Handle local development response (binary PDF)
+                pdfBlob = await response.blob();
+            }
 
-            // Get the PDF blob directly
-            const pdfBlob = await response.blob();
+            // Create download link
+            const filename = `${formData.tema.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
             const downloadUrl = URL.createObjectURL(pdfBlob);
-            
             const a = document.createElement('a');
             a.href = downloadUrl;
             a.download = filename;
