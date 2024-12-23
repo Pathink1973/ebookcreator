@@ -53,12 +53,21 @@ export const handler = async (event) => {
       throw new Error('Failed to extract content');
     }
 
-    // Launch browser
+    // Initialize chromium
+    await chromium.init();
+    
+    const executablePath = await chromium.executablePath();
+
+    // Launch browser with the executable path
     browser = await puppeteer.launch({
       args: chromium.args,
-      executablePath: await chromium.executablePath,
+      executablePath,
       headless: chromium.headless,
-      defaultViewport: chromium.defaultViewport
+      defaultViewport: {
+        width: 1920,
+        height: 1080,
+        deviceScaleFactor: 1,
+      }
     });
 
     const page = await browser.newPage();
@@ -68,7 +77,10 @@ export const handler = async (event) => {
       author: author,
       content: content,
       coverImage: imageUrl
-    }));
+    }), {
+      waitUntil: 'networkidle0',
+      timeout: 30000
+    });
 
     const pdf = await page.pdf({
       format: 'A4',
@@ -86,7 +98,11 @@ export const handler = async (event) => {
     console.error('Error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ 
+        error: error.message,
+        details: error.toString(),
+        stack: error.stack 
+      })
     };
   } finally {
     if (browser) {
