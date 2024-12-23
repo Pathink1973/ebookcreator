@@ -102,16 +102,13 @@ export const handler = async (event) => {
       throw new Error('Failed to extract content from Wikipedia');
     }
 
-    // Configure chromium
-    await chromium.init();
-    const executablePath = await chromium.executablePath;
-
     // Launch browser with appropriate configurations
     browser = await puppeteer.launch({
-      args: chromium.args,
+      args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
       defaultViewport: chromium.defaultViewport,
-      executablePath: executablePath,
-      headless: chromium.headless,
+      executablePath: await chromium.executablePath('win64'),
+      headless: true,
+      ignoreHTTPSErrors: true
     });
     
     const page = await browser.newPage();

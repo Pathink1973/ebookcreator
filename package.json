@@ -17,6 +17,7 @@
     "path": "^0.12.7",
     "@netlify/functions": "^2.0.0",
     "puppeteer-core": "^21.7.0",
-    "@sparticuz/chromium": "^119.0.0"
+    "@sparticuz/chromium": "^119.0.0",
+    "chrome-aws-lambda": "^10.1.0"
   }
 }
