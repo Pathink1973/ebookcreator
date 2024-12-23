@@ -2,9 +2,11 @@
 
 A powerful web application that allows you to create, customize, and generate ebooks from various sources. This tool helps you transform web content into beautifully formatted ebooks with a professional layout.
 
+🌐 **Live Demo**: [Wikipedia Ebook Creator](https://wikipedia-ebookcreator.netlify.app)
+
 ## Features
 
-- 📚 Create ebooks from URLs or direct text input
+- 📚 Create ebooks from Wikipedia URLs
 - 🎨 Customizable templates and styling
 - 📑 Multiple format support (HTML to PDF)
 - 📱 Responsive design for better readability
@@ -30,11 +32,11 @@ cd Ebook Creator V2
 npm install
 ```
 
-## Usage
+## Local Development
 
-1. Start the server:
+1. Start the development server:
 ```bash
-npm start
+npm run dev
 ```
 
 2. Open your browser and navigate to:
@@ -42,11 +44,25 @@ npm start
 http://localhost:3000
 ```
 
-3. Using the application:
-   - Enter a URL or paste your content in the text area
-   - Customize the appearance using the available options
-   - Preview your ebook
-   - Generate and download the final version
+## Deployment
+
+This project is deployed on Netlify. To deploy your own version:
+
+1. Fork this repository
+2. Sign up for a [Netlify account](https://www.netlify.com)
+3. Connect your GitHub repository to Netlify
+4. Deploy with these settings:
+   - Build command: `npm run build`
+   - Publish directory: `public`
+   - Functions directory: `netlify/functions`
+
+## Usage
+
+1. Visit [Wikipedia Ebook Creator](https://wikipedia-ebookcreator.netlify.app)
+2. Enter a Wikipedia URL in the input field
+3. Click "Generate PDF"
+4. Wait for the processing to complete
+5. Your PDF will automatically download
 
 ## Project Structure
 
@@ -57,42 +73,25 @@ Ebook Creator V2/
 │   ├── pdf-template.html# PDF generation template
 │   ├── css/           # Stylesheets
 │   └── js/            # Client-side JavaScript
-├── server/             # Server-side code
-│   ├── server.js      # Express server setup
-│   └── templates.js   # Template handling
+├── netlify/
+│   └── functions/     # Serverless functions
+│       ├── fetch-content.js
+│       └── generate-pdf.js
 └── package.json       # Project dependencies
 ```
-
-## Key Features Explained
-
-### URL Content Extraction
-- Automatically extracts content from provided URLs
-- Maintains formatting and structure
-- Handles various website layouts
-
-### Custom Styling
-- Choose from predefined templates
-- Customize fonts, colors, and layouts
-- Add custom CSS styling
-
-### PDF Generation
-- High-quality PDF output
-- Maintains hyperlinks and formatting
-- Optimized for different screen sizes
 
 ## Troubleshooting
 
 Common issues and solutions:
 
-1. **Port 3000 already in use**
-   ```bash
-   lsof -i :3000
-   kill -9 [PID]
-   ```
+1. **PDF Generation Failed**
+   - Make sure you're using a valid Wikipedia URL
+   - Check if the article is accessible
+   - Try refreshing the page and trying again
 
-2. **Missing dependencies**
+2. **Development Server Issues**
    ```bash
-   npm install
+   npm run dev
    ```
 
 ## Contributing
@@ -105,4 +104,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-Made by Patrício Brito © 2024
+Made by Patrício Brito 2024
