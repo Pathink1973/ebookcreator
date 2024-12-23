@@ -41,11 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify(formData)
             });
 
+            const data = await response.json();
+
             if (!response.ok) {
-                throw new Error('Failed to generate PDF');
+                throw new Error(data.error || data.details || 'Failed to generate PDF');
             }
 
-            const data = await response.json();
+            if (!data.pdf) {
+                throw new Error('No PDF data received from server');
+            }
             
             // Convert base64 to PDF and trigger download
             const pdfContent = atob(data.pdf);
@@ -62,8 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             URL.revokeObjectURL(downloadUrl);
 
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error generating PDF. Please try again.');
+            console.error('Error details:', error);
+            alert(`Error generating PDF: ${error.message}`);
         } finally {
             loadingDiv.style.display = 'none';
         }
