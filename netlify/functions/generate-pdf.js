@@ -53,15 +53,16 @@ exports.handler = async (event, context) => {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${title}.pdf"`,
+        'Content-Disposition': 'inline; filename="' + encodeURIComponent(title) + '.pdf"',
       },
       body: pdf.toString('base64'),
       isBase64Encoded: true,
     };
   } catch (error) {
+    console.error('PDF generation error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to generate PDF' }),
+      body: JSON.stringify({ error: 'Failed to generate PDF', details: error.message }),
     };
   }
 };

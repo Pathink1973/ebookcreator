@@ -36,18 +36,24 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to generate PDF');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate PDF');
             }
 
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${title}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            // Get the PDF as a blob
+            const pdfBlob = await response.blob();
+            
+            // Create object URL for the PDF
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            
+            // Open PDF in new window
+            window.open(pdfUrl, '_blank');
+            
+            // Clean up the object URL after a delay
+            setTimeout(() => {
+                URL.revokeObjectURL(pdfUrl);
+            }, 100);
+
         } catch (error) {
             console.error('Error generating PDF:', error);
             throw error;
@@ -78,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await generatePDF(content, title);
 
         } catch (error) {
-            errorMessage.textContent = 'An error occurred. Please try again.';
+            errorMessage.textContent = error.message || 'An error occurred. Please try again.';
             errorMessage.style.display = 'block';
         } finally {
             loadingSpinner.style.display = 'none';
