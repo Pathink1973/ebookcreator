@@ -14,65 +14,20 @@
         
         <form id="ebookForm">
             <div class="form-group">
-                <label for="tema">Topic:</label>
-                <input type="text" id="tema" placeholder="Enter Wikipedia topic" required>
+                <label for="urlInput">Wikipedia URL:</label>
+                <input type="url" id="urlInput" placeholder="Paste Wikipedia URL" required>
             </div>
 
-            <div class="form-group">
-                <label for="author">Author:</label>
-                <input type="text" id="author" placeholder="Enter your name" required>
-            </div>
-
-            <div class="form-group">
-                <label for="wikiUrl">Wikipedia URL:</label>
-                <input type="text" id="wikiUrl" placeholder="Paste Wikipedia URL" required>
-                <button type="button" id="fetchPreview" class="secondary-btn">Preview Content</button>
-            </div>
-
-            <div class="form-group">
-                <label for="imageUrl">Cover Image URL:</label>
-                <input type="text" id="imageUrl" placeholder="Paste image URL">
-                <div id="imagePreview" class="image-preview"></div>
-            </div>
-
-            <div class="form-group">
-                <label>Customization:</label>
-                <select id="template" class="select-style">
-                    <option value="modern">Modern Template</option>
-                    <option value="classic">Classic Template</option>
-                    <option value="academic">Academic Template</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Include:</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox" id="includeToc" checked> Table of Contents</label>
-                    <label><input type="checkbox" id="includeImages" checked> Images</label>
-                    <label><input type="checkbox" id="includeReferences"> References</label>
-                </div>
-            </div>
-
-            <div id="preview" class="preview-container"></div>
-
-            <button type="submit" class="btn">Generate E-book</button>
-        </form>
-
-        <div id="result" class="result">
-            <div id="loading" class="loading-spinner" style="display: none;">
+            <div id="errorMessage" class="error-message" style="display: none; color: red; margin: 10px 0;"></div>
+            
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
                 Generating your ebook...
             </div>
-        </div>
+
+            <button type="button" id="generateBtn" class="btn">Generate E-book</button>
+        </form>
     </div>
 
-    <script>
-        document.getElementById('fetchPreview').addEventListener('click', function() {
-            const wikiUrl = document.getElementById('wikiUrl').value;
-            if (wikiUrl) {
-                window.open(wikiUrl, '_blank');
-            }
-        });
-    </script>
     <script src="/js/netlify-script.js"></script>
 </body>
 </html>
