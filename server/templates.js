@@ -282,7 +282,7 @@ export const getTemplate = (templateType) => {
                         body {
                             font-family: 'Times New Roman', serif;
                             line-height: 1.5;
-                            margin: 1.5cm;
+                            margin: 2.5cm;
                         }
                         h1 { font-size: 28px; text-align: center; }
                     </style>

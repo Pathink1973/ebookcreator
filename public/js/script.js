@@ -1,63 +1,130 @@
-document.addEventListener('DOMContentLoaded', () => {
+// Progress bar function
+function setProgress(percent) {
+    const progressBar = document.querySelector('.progress');
+    const progressText = document.querySelector('.progress-text');
+    if (progressBar && progressText) {
+        progressBar.style.width = percent + '%';
+        progressText.textContent = Math.round(percent) + '%';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('ebookForm');
-    const imageUrl = document.getElementById('imageUrl');
-    const imagePreview = document.getElementById('imagePreview');
-    const fetchPreviewBtn = document.getElementById('fetchPreview');
-    const previewContainer = document.getElementById('preview');
-    const loading = document.getElementById('loading');
+    const loadingSpinner = document.getElementById('loading');
+    const resultDiv = document.getElementById('result');
+    
+    if (!form) {
+        console.error('Form element not found');
+        return;
+    }
 
-    // Form submission
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        loading.style.display = 'block';
-
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Reset UI
+        loadingSpinner.style.display = 'block';
+        
         try {
-            const formData = {
-                tema: document.getElementById('tema').value,
-                author: document.getElementById('author').value,
-                wikiUrl: document.getElementById('wikiUrl').value,
-                imageUrl: document.getElementById('imageUrl').value,
-                options: {
-                    template: document.getElementById('template').value,
-                    includeToc: document.getElementById('includeToc').checked,
-                    includeImages: document.getElementById('includeImages').checked,
-                    includeReferences: document.getElementById('includeReferences').checked
-                }
-            };
+            // Get form data
+            const tema = document.getElementById('tema');
+            const author = document.getElementById('author');
+            const wikiUrl = document.getElementById('wikiUrl');
+            const imageUrl = document.getElementById('imageUrl');
 
-            console.log('Sending request with data:', formData);
-
-            const response = await fetch('/generate-ebook', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            if (!tema || !author || !wikiUrl) {
+                throw new Error('Required form fields are missing');
             }
+
+            const formData = {
+                tema: tema.value,
+                author: author.value,
+                wikiUrl: wikiUrl.value,
+                imageUrl: imageUrl ? imageUrl.value : ''
+            };
             
-            const result = await response.json();
-            
-            document.getElementById('result').innerHTML = `
-                <div class="success-message">
-                    <p>E-book generated successfully!</p>
-                    <a href="${result.downloadLink}" class="download-btn" target="_blank">
-                        Download E-book
-                    </a>
-                </div>
-            `;
+            // Create AbortController for timeout
+            const controller = new AbortController();
+            const timeout = setTimeout(() => {
+                controller.abort();
+            }, 120000); // 2 minutes timeout
+                
+            try {
+                // Send request to server with timeout
+                const response = await fetch('/generate-ebook', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                    signal: controller.signal
+                });
+                    
+                clearTimeout(timeout);
+                    
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                    
+                const data = await response.json();
+                    
+                if (data.success) {
+                    loadingSpinner.style.display = 'none';
+                    
+                    // Create download link
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = data.downloadLink;
+                    downloadLink.className = 'btn';
+                    downloadLink.textContent = 'Download PDF';
+                    downloadLink.download = ''; // This will use the server's filename
+                    
+                    // Clear previous results and add new download link
+                    resultDiv.innerHTML = '';
+                    resultDiv.appendChild(downloadLink);
+                } else {
+                    throw new Error(data.error || 'Failed to generate ebook');
+                }
+            } catch (fetchError) {
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out. Please try again.');
+                }
+                throw fetchError;
+            } finally {
+                clearTimeout(timeout);
+            }
+                
         } catch (error) {
             console.error('Error:', error);
-            document.getElementById('result').innerHTML = `
-                <div class="error-message">Error: ${error.message}</div>
-            `;
-        } finally {
-            loading.style.display = 'none';
+            loadingSpinner.style.display = 'none';
+            
+            // Show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = error.message || 'An error occurred';
+            resultDiv.innerHTML = '';
+            resultDiv.appendChild(errorDiv);
         }
     });
+    
+    // Preview image when URL is entered
+    const imageUrl = document.getElementById('imageUrl');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    if (imageUrl && imagePreview) {
+        imageUrl.addEventListener('input', function() {
+            const url = this.value;
+            if (url) {
+                const img = document.createElement('img');
+                img.src = url;
+                img.onerror = () => {
+                    imagePreview.innerHTML = 'Invalid image URL';
+                };
+                img.onload = () => {
+                    imagePreview.innerHTML = '';
+                    imagePreview.appendChild(img);
+                };
+            } else {
+                imagePreview.innerHTML = '';
+            }
+        });
+    }
 });

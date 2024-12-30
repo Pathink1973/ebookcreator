@@ -3,83 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ebook Creator</title>
+    <title>Ebook Creator 1.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <img src="assets/images/logo.png" alt="Logo" class="logo">
-        <h1 class="title" style="text-align: left;">Wikipedia to PDF</h1>
+        <img src="assets/images/logo.png" alt="Logótipo" class="logo">
+        <h1 class="title">Conversor Wikipédia para PDF</h1>
+        <button id="helpBtn" class="btn-help" title="Informações de Ajuda">
+            <i class="fas fa-info-circle"></i>
+        </button>
         
         <form id="ebookForm">
             <div class="form-group">
-                <label for="tema">Topic:</label>
-                <input type="text" id="tema" placeholder="Enter Wikipedia topic" required>
+                <label for="tema">Tópico:</label>
+                <input type="text" id="tema" placeholder="Introduza o tópico da Wikipedia" required>
+            </div>
+            <div class="form-group">
+                <label for="author">Autor:</label>
+                <input type="text" id="author" placeholder="Introduza o nome do autor" required>
+            </div>
+            <div class="form-group">
+                <label for="wikiUrl">URL da Wikipedia:</label>
+                <input type="url" id="wikiUrl" placeholder="Introduza o URL da Wikipedia" required>
+            </div>
+            <div class="form-group">
+                <label for="imageUrl">URL da Imagem de Capa (opcional):</label>
+                <input type="url" id="imageUrl" placeholder="Introduza o URL da imagem">
             </div>
 
             <div class="form-group">
-                <label for="author">Author:</label>
-                <input type="text" id="author" placeholder="Enter your name" required>
-            </div>
-
-            <div class="form-group">
-                <label for="wikiUrl">Wikipedia URL:</label>
-                <input type="text" id="wikiUrl" placeholder="Paste Wikipedia URL" required>
-                <button type="button" id="fetchPreview" class="secondary-btn">Preview Content</button>
-            </div>
-
-            <div class="form-group">
-                <label for="imageUrl">Cover Image URL:</label>
-                <input type="text" id="imageUrl" placeholder="Paste image URL">
-                <div id="imagePreview" class="image-preview"></div>
-            </div>
-
-            <div class="form-group">
-                <label>Customization:</label>
-                <select id="template" class="select-style">
-                    <option value="modern">Modern Template</option>
-                    <option value="classic">Classic Template</option>
-                    <option value="academic">Academic Template</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Include:</label>
+                <label>Incluir:</label>
                 <div class="checkbox-group">
-                    <label><input type="checkbox" id="includeToc" checked> Table of Contents</label>
-                    <label><input type="checkbox" id="includeImages" checked> Images</label>
-                    <label><input type="checkbox" id="includeReferences"> References</label>
+                    <label><input type="checkbox" id="includeToc" checked> Índice</label>
+                    <label><input type="checkbox" id="includeImages" checked> Imagens</label>
+                    <label><input type="checkbox" id="includeReferences"> Referências</label>
                 </div>
             </div>
 
-            <div id="preview" class="preview-container"></div>
-
-            <button type="submit" class="btn">Generate E-book</button>
+            <button type="submit" class="btn">Gerar Ebook</button>
         </form>
 
         <div id="result" class="result">
             <div id="loading" class="loading-spinner" style="display: none;">
-                Generating your ebook...
+                A gerar o seu ebook...
+            </div>
+            <div id="error" class="error" style="display: none;"></div>
+            <div id="success" class="success" style="display: none;">
+                <p>O seu ebook foi gerado com sucesso!</p>
+                <a id="downloadLink" class="btn" href="" download>Descarregar PDF</a>
             </div>
         </div>
     </div>
 
-    <div id="loading" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000;">
-        <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
-            <p>Generating your PDF...</p>
-            <div class="loader"></div>
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <h2>Como usar o Ebook Creator</h2>
+            <div class="help-content">
+                <p><strong>1.</strong> Introduza o título do seu ebook no campo "Título".</p>
+                <p><strong>2.</strong> Digite o nome do autor no campo "Autor".</p>
+                <p><strong>3.</strong> Cole o link da Wikipedia no campo "URL da Wikipedia".</p>
+                <p><strong>4.</strong> (Opcional) Adicione uma URL de imagem para a capa.</p>
+                <p><strong>5.</strong> Clique em "Gerar Ebook" e aguarde o download.</p>
+            </div>
+            <div class="credits">
+                <p>Desenvolvido ❤️ Patrício Brito©2024</p>
+                <p>Ebook Creator versão 1.0</p>
+            </div>
+            <button id="closeHelpBtn" class="btn">Fechar</button>
         </div>
     </div>
 
     <script>
-        document.getElementById('fetchPreview').addEventListener('click', function() {
-            const wikiUrl = document.getElementById('wikiUrl').value;
-            if (wikiUrl) {
-                window.open(wikiUrl, '_blank');
+        document.getElementById('ebookForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            success.style.display = 'none';
+            
+            const formData = {
+                tema: document.getElementById('tema').value,
+                author: document.getElementById('author').value,
+                wikiUrl: document.getElementById('wikiUrl').value,
+                imageUrl: document.getElementById('imageUrl').value,
+                includeToc: document.getElementById('includeToc').checked,
+                includeImages: document.getElementById('includeImages').checked,
+                includeReferences: document.getElementById('includeReferences').checked
+            };
+            
+            try {
+                const response = await fetch('/generate-ebook', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('downloadLink').href = data.downloadLink;
+                    success.style.display = 'block';
+                } else {
+                    error.textContent = data.error || 'Ocorreu um erro';
+                    error.style.display = 'block';
+                }
+            } catch (err) {
+                error.textContent = 'Ocorreu um erro ao gerar o ebook';
+                error.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+
+        // Help modal functionality
+        const helpBtn = document.getElementById('helpBtn');
+        const helpModal = document.getElementById('helpModal');
+        const closeHelpBtn = document.getElementById('closeHelpBtn');
+
+        helpBtn.addEventListener('click', () => {
+            helpModal.style.display = 'block';
+        });
+
+        closeHelpBtn.addEventListener('click', () => {
+            helpModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                helpModal.style.display = 'none';
             }
         });
     </script>
-    <script src="script.js"></script>
 </body>
 </html>

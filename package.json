@@ -1,22 +1,46 @@
 {
   "name": "ebook-creator-app",
-  "version": "1.0.0",
-  "type": "module",
-  "main": "netlify/functions/generate-ebook.js",
+  "version": "1.2.0",
+  "description": "An application to create and manage ebooks",
+  "author": {
+    "name": "Patricio Brito"
+  },
+  "main": "main.js",
   "scripts": {
-    "start": "node server/server.js",
-    "build": "npm install"
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
   },
   "dependencies": {
-    "@netlify/functions": "^2.0.0",
-    "axios": "^1.7.7",
+    "axios": "^1.7.9",
     "cheerio": "^1.0.0",
-    "express": "^4.17.1",
+    "electron-is-dev": "^3.0.1",
+    "express": "^4.21.1",
     "html-to-text": "^9.0.5",
     "mime-types": "^2.1.35",
     "node-fetch": "^3.3.2",
     "path": "^0.12.7",
-    "puppeteer-core": "^10.1.0",
-    "chrome-aws-lambda": "^10.1.0"
+    "puppeteer": "^21.11.0",
+    "wait-on": "^8.0.1"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.ebookcreator.app",
+    "productName": "Ebook Creator",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*"
+    ],
+    "mac": {
+      "target": [
+        "dir"
+      ],
+      "icon": "build/ebookcreator.icns"
+    }
   }
 }
