@@ -99,7 +99,7 @@
             };
             
             try {
-                const response = await fetch('/generate-ebook', {
+                const response = await fetch('/.netlify/functions/generate-ebook', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -107,17 +107,30 @@
                     body: JSON.stringify(formData)
                 });
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    document.getElementById('downloadLink').href = data.downloadLink;
+                if (!response.ok) {
+                    throw new Error('Erro na resposta do servidor');
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/pdf')) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${formData.tema}_${formData.author}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
                     success.style.display = 'block';
                 } else {
-                    error.textContent = data.error || 'Ocorreu um erro';
-                    error.style.display = 'block';
+                    const data = await response.json();
+                    if (!data.success) {
+                        throw new Error(data.error || 'Erro ao gerar o PDF');
+                    }
                 }
             } catch (err) {
-                error.textContent = 'Ocorreu um erro ao gerar o ebook';
+                error.textContent = err.message || 'Ocorreu um erro ao gerar o ebook';
                 error.style.display = 'block';
             } finally {
                 loading.style.display = 'none';
