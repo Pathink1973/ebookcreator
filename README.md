@@ -1,141 +1,108 @@
-# Ebook Creator - Wikipedia to PDF
+# Ebook Creator 1.0
 
-A powerful web application that allows you to create, customize, and generate ebooks from Wikipedia articles. This tool helps you transform Wikipedia content into beautifully formatted ebooks with a professional layout, now with automatic PDF downloads and cloud deployment support!
+![Ebook Creator Logo](public/assets/images/logo.png)
 
-## Features
+Uma aplicação web para converter artigos da Wikipédia em ebooks PDF formatados profissionalmente.
 
-- 📚 Create ebooks directly from Wikipedia URLs
-- 🎨 Multiple professional templates (Modern, Classic, Academic)
-- 📑 Automatic PDF generation and download
-- 📱 Responsive design for better readability
-- 🔍 Content preview functionality
-- ⚡ Serverless deployment on Netlify
-- 💾 Direct PDF download to your computer
-- 🖼️ Custom cover image support
-- 📋 Table of contents generation
-- 🌐 Cloud-based processing
+## 🚀 Funcionalidades
 
-## Live Demo
+- Conversão de artigos da Wikipédia para PDF
+- Personalização da capa com imagem
+- Formatação profissional com índice automático
+- Suporte para imagens e referências
+- Interface intuitiva e fácil de usar
 
-Visit our live application at: [Your-Netlify-URL]
+## 📋 Pré-requisitos
 
-## Prerequisites
+- Node.js (versão 14 ou superior)
+- NPM (gestor de pacotes do Node.js)
+- Navegador web moderno (Chrome, Firefox, Safari)
 
-Before you begin, ensure you have installed:
-- Node.js (v12.0.0 or higher)
-- npm (comes with Node.js)
+## 🔧 Instalação
 
-## Installation
-
-1. Clone the repository:
+1. Clone o repositório:
 ```bash
-git clone [your-repo-url]
-cd Ebook Creator V2
+git clone [URL_DO_REPOSITÓRIO]
 ```
 
-2. Install dependencies:
+2. Instale as dependências:
 ```bash
 npm install
 ```
 
-## Usage
-
-### Local Development
-1. Start the server:
+3. Inicie a aplicação:
 ```bash
-npm start
+node server.js
 ```
 
-2. Open your browser and navigate to:
+4. Aceda à aplicação no navegador:
 ```
 http://localhost:3000
 ```
 
-### Using the Application
+## 📖 Como Usar
 
-1. Enter Wikipedia Article Details:
-   - Paste the Wikipedia URL
-   - Enter your name as the author
-   - Add a cover image URL (optional)
+1. **Introduza o Tópico**
+   - Digite o título do tópico que deseja converter
 
-2. Customize Your Ebook:
-   - Choose from three templates (Modern, Classic, Academic)
-   - Toggle table of contents
-   - Enable/disable images
+2. **Adicione o Autor**
+   - Introduza o nome do autor do ebook
 
-3. Generate and Download:
-   - Click "Generate PDF"
-   - Wait for processing
-   - PDF will automatically download to your computer
+3. **URL da Wikipédia**
+   - Cole o endereço URL do artigo da Wikipédia que pretende converter
 
-## Project Structure
+4. **Imagem de Capa (Opcional)**
+   - Adicione um URL de uma imagem para personalizar a capa do seu ebook
 
-```
-Ebook Creator V2/
-├── public/                # Static files
-│   ├── index.html        # Main application page
-│   ├── pdf-template.html # PDF generation template
-│   ├── style.css        # Main stylesheet
-│   └── script.js        # Client-side JavaScript
-├── server/               # Server-side code
-│   ├── server.js        # Express server setup
-│   └── templates.js     # Template handling
-├── netlify/              # Netlify configuration
-│   └── functions/       # Serverless functions
-├── netlify.toml         # Netlify deployment config
-└── package.json         # Project dependencies
-```
+5. **Opções de Conteúdo**
+   - Índice: Inclui um índice automático
+   - Imagens: Mantém as imagens do artigo
+   - Referências: Inclui a secção de referências
 
-## Deployment
+6. **Gerar PDF**
+   - Clique em "Gerar Ebook" e aguarde o download
 
-This application is ready for deployment on Netlify:
+## ⚙️ Configurações
 
-1. Fork/Clone this repository
-2. Connect your repository to Netlify
-3. Deploy! (Netlify will automatically detect the configuration)
+O PDF gerado incluirá:
+- Capa personalizada
+- Índice (se selecionado)
+- Conteúdo formatado
+- Imagens (se selecionadas)
+- Referências (se selecionadas)
 
-## Key Features Explained
+## 📱 Compatibilidade
 
-### Automatic PDF Download
-- PDFs are generated in the cloud
-- Automatic download trigger
-- No server storage required
+- ✅ Desktop (Windows, Mac, Linux)
+- ✅ Tablet
+- ✅ Smartphone
 
-### Template System
-- Modern: Clean, minimalist design
-- Classic: Traditional book layout
-- Academic: Research-paper style
+## 🔒 Privacidade
 
-### Wikipedia Integration
-- Automatic content extraction
-- Maintains formatting and structure
-- Handles references and citations
+- Não armazenamos nenhum conteúdo gerado
+- Os PDFs são eliminados após o download
+- Não recolhemos dados pessoais
 
-### Cloud Processing
-- Serverless architecture
-- Scalable PDF generation
-- Fast processing times
+## 🤝 Contribuições
 
-## Troubleshooting
+Sugestões e contribuições são sempre bem-vindas! 
+Para contribuir:
+1. Faça um Fork do projeto
+2. Crie uma Branch para sua modificação
+3. Faça o Commit
+4. Push para o Branch
+5. Abra um Pull Request
 
-Common issues and solutions:
+## 📄 Licença
 
-1. **PDF Generation Fails**
-   - Check your Wikipedia URL is valid
-   - Ensure cover image URL is accessible
-   - Try a different browser if download doesn't start
+Este projeto está sob a licença MIT. Veja o ficheiro [LICENSE](LICENSE) para mais detalhes.
 
-2. **Local Development Issues**
-   ```bash
-   # If port 3000 is in use
-   lsof -i :3000
-   kill -9 [PID]
-   ```
+---
 
-## Contributing
+<div align="center">
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Desenvolvido ❤️ Patrício Brito©2024
 
-## License
+Ebook Creator versão 1.0
 
-Made with love by Patrício Brito©2024
+</div>
