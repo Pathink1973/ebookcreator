@@ -6,6 +6,7 @@ const cheerio = require('cheerio');
 // Função para buscar conteúdo da Wikipedia
 async function getWikipediaContent(url) {
     try {
+        console.log(`Buscando conteúdo da URL: ${url}`);
         const response = await axios.get(url, {
             timeout: 30000,
             headers: {
@@ -34,9 +35,10 @@ async function getWikipediaContent(url) {
             throw new Error('Conteúdo ou título da página não encontrados.');
         }
 
+        console.log('Conteúdo da Wikipedia obtido com sucesso.');
         return { content, title };
     } catch (error) {
-        console.error('Erro ao buscar conteúdo da Wikipedia:', error);
+        console.error('Erro ao buscar conteúdo da Wikipedia:', error.message);
         throw new Error('Falha ao buscar conteúdo da Wikipedia');
     }
 }
@@ -45,10 +47,13 @@ exports.handler = async (event) => {
     let browser = null;
 
     try {
+        console.log('Início do processamento do PDF.');
+
         const { tema, author, wikiUrl, imageUrl } = JSON.parse(event.body);
 
         // Validar parâmetros
         if (!tema || !author || !wikiUrl) {
+            console.error('Parâmetros obrigatórios ausentes.');
             return {
                 statusCode: 400,
                 body: JSON.stringify({
@@ -60,11 +65,13 @@ exports.handler = async (event) => {
 
         const wikiContent = await getWikipediaContent(wikiUrl);
 
+        console.log('Iniciando Puppeteer...');
         browser = await puppeteer.launch({
             args: chromium.args,
             executablePath: await chromium.executablePath,
             headless: chromium.headless,
         });
+        console.log('Puppeteer iniciado com sucesso.');
 
         const page = await browser.newPage();
         await page.setViewport({ width: 1024, height: 768 });
@@ -130,7 +137,7 @@ exports.handler = async (event) => {
 
         await page.setContent(template, { waitUntil: 'networkidle0' });
 
-        // Gerar PDF
+        console.log('Gerando PDF...');
         const pdf = await page.pdf({
             format: 'A4',
             margin: { top: '2cm', right: '2cm', bottom: '2cm', left: '2cm' },
@@ -138,6 +145,7 @@ exports.handler = async (event) => {
         });
 
         await browser.close();
+        console.log('PDF gerado com sucesso.');
 
         return {
             statusCode: 200,
@@ -149,7 +157,7 @@ exports.handler = async (event) => {
             isBase64Encoded: true,
         };
     } catch (error) {
-        console.error('Erro ao gerar o PDF:', error);
+        console.error('Erro ao gerar o PDF:', error.message);
 
         if (browser) await browser.close();
 
