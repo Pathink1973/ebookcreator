@@ -4,11 +4,8 @@
   publish = "public"
 
 [functions]
-  # Lista de dependências externas que devem ser incluídas no pacote
-  external_node_modules = ["puppeteer-core", "chrome-aws-lambda"]
-  # Bundler para otimizar o código
+  external_node_modules = ["puppeteer-core", "chrome-aws-lambda", "canvas"]
   node_bundler = "esbuild"
-  # Incluir arquivos necessários ao Chrome AWS Lambda
   included_files = ["node_modules/**/*"]
 
 [[redirects]]
