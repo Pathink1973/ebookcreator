@@ -69,7 +69,8 @@ exports.handler = async (event) => {
         browser = await puppeteer.launch({
             args: chromium.args,
             executablePath: await chromium.executablePath,
-            headless: chromium.headless,
+            headless: true,
+            ignoreHTTPSErrors: true, // Ignorar erros HTTPS no ambiente serverless
         });
         console.log('Puppeteer iniciado com sucesso.');
 
